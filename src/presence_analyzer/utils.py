@@ -13,7 +13,7 @@ from flask import Response
 from presence_analyzer.main import app
 
 import logging
-log = logging.getLogger(__name__)  # pylint: disable-msg=C0103
+log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 def jsonify(function):
@@ -22,8 +22,13 @@ def jsonify(function):
     """
     @wraps(function)
     def inner(*args, **kwargs):
-        return Response(dumps(function(*args, **kwargs)),
-                        mimetype='application/json')
+        """
+        This docstring will be overridden by @wraps decorator.
+        """
+        return Response(
+            dumps(function(*args, **kwargs)),
+            mimetype='application/json'
+        )
     return inner
 
 
@@ -70,7 +75,7 @@ def group_by_weekday(items):
     """
     Groups presence entries by weekday.
     """
-    result = {i: [] for i in range(7)}
+    result = [[], [], [], [], [], [], []]  # one list for every day in week
     for date in items:
         start = items[date]['start']
         end = items[date]['end']

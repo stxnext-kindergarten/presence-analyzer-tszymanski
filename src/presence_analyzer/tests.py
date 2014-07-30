@@ -15,7 +15,7 @@ TEST_DATA_CSV = os.path.join(
 )
 
 
-# pylint: disable=E1103
+# pylint: disable=maybe-no-member, too-many-public-methods
 class PresenceAnalyzerViewsTestCase(unittest.TestCase):
     """
     Views tests.
@@ -81,18 +81,20 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
         sample_date = datetime.date(2013, 9, 10)
         self.assertIn(sample_date, data[10])
         self.assertItemsEqual(data[10][sample_date].keys(), ['start', 'end'])
-        self.assertEqual(data[10][sample_date]['start'],
-                         datetime.time(9, 39, 5))
+        self.assertEqual(
+            data[10][sample_date]['start'],
+            datetime.time(9, 39, 5)
+        )
 
 
 def suite():
     """
     Default test suite.
     """
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(PresenceAnalyzerViewsTestCase))
-    suite.addTest(unittest.makeSuite(PresenceAnalyzerUtilsTestCase))
-    return suite
+    base_suite = unittest.TestSuite()
+    base_suite.addTest(unittest.makeSuite(PresenceAnalyzerViewsTestCase))
+    base_suite.addTest(unittest.makeSuite(PresenceAnalyzerUtilsTestCase))
+    return base_suite
 
 
 if __name__ == '__main__':
