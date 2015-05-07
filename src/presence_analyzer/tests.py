@@ -68,15 +68,16 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.content_type, 'application/json')
         data = json.loads(resp.data)
+        resp = self.client.get(
+            '/api/v1/mean_time_weekday/' + self.invalid_user_id
+        )
+        self.assertEqual(resp.status_code, 404)
+
         expected_data = [
             ['Mon', 0], ['Tue', 30047.0], ['Wed', 24465.0],
             ['Thu', 23705.0], ['Fri', 0], ['Sat', 0], ['Sun', 0]
         ]
         self.assertEqual(data, expected_data)
-        resp = self.client.get(
-            '/api/v1/mean_time_weekday/' + self.invalid_user_id
-        )
-        self.assertEqual(resp.status_code, 404)
 
     def test_presence_weekday_api(self):
         """
@@ -88,16 +89,38 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.content_type, 'application/json')
         data = json.loads(resp.data)
+        resp = self.client.get(
+            '/api/v1/presence_weekday/' + self.invalid_user_id
+        )
+        self.assertEqual(resp.status_code, 404)
+
         expected_data = [
             ['Weekday', 'Presence (s)'], ['Mon', 0], ['Tue', 30047],
             ['Wed', 24465], ['Thu', 23705], ['Fri', 0], ['Sat', 0],
             ['Sun', 0]
         ]
         self.assertEqual(data, expected_data)
+
+    def test_presence_from_to_api(self):
+        """
+        Test for user average working times api.
+        """
         resp = self.client.get(
-            '/api/v1/presence_weekday/' + self.invalid_user_id
+            '/api/v1/presence_from_to/' + self.valid_user_id
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.content_type, 'application/json')
+        data = json.loads(resp.data)
+        resp = self.client.get(
+            '/api/v1/presence_from_to/' + self.invalid_user_id
         )
         self.assertEqual(resp.status_code, 404)
+
+        expected_data = [
+            ['Mon', 0, 0], ['Tue', 34745, 64792], ['Wed', 33592, 58057],
+            ['Thu', 38926, 62631], ['Fri', 0, 0], ['Sat', 0, 0], ['Sun', 0, 0]
+        ]
+        self.assertEqual(data, expected_data)
 
 
 class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
@@ -174,15 +197,21 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
             utils.interval(datetime.time(0), datetime.time(0)), 0
         )
 
-    def test_mean(self):
+    def test_usual_presence_time(self):
         """
-        Test arithmetic mean utility.
+        Test usual presence time utility.
         """
-        self.assertEqual(utils.mean([5, 10, 15]), 10)
-        self.assertEqual(utils.mean([]), 0)
-        self.assertEqual(utils.mean([-5, -10, -15]), -10)
-        self.assertEqual(utils.mean([1]), 1)
-        self.assertEqual(utils.mean([2.5, 17.5, 10, 8.1, 11.9]), 10)
+        data = utils.get_data()
+        desired_data = {
+            0: {'start': 0, 'end': 0},
+            1: {'start': 34745.0, 'end': 64792.0},
+            2: {'start': 33592.0, 'end': 58057.0},
+            3: {'start': 38926.0, 'end': 62631.0},
+            4: {'start': 0, 'end': 0},
+            5: {'start': 0, 'end': 0},
+            6: {'start': 0, 'end': 0}
+        }
+        self.assertDictEqual(utils.usual_presence_time(data[10]), desired_data)
 
 
 def suite():

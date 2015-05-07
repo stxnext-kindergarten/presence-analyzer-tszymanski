@@ -6,7 +6,7 @@ Helper functions used in views.
 import csv
 from json import dumps
 from functools import wraps
-from datetime import datetime
+from datetime import datetime, time, date
 
 from flask import Response
 
@@ -83,6 +83,22 @@ def group_by_weekday(items):
     return result
 
 
+def usual_presence_time(items):
+    """
+    Returns list of start and end times for each day of work.
+    """
+    user_week = {i: {'start': [], 'end': []} for i in range(7)}
+    for dt in items:
+        user_week[dt.weekday()]['start'].append(items[dt]['start'])
+        user_week[dt.weekday()]['end'].append(items[dt]['end'])
+    return {
+        day: {
+            'start': mean(map(seconds_since_midnight, user_week[day]['start'])),
+            'end': mean(map(seconds_since_midnight, user_week[day]['end']))
+        } for day in user_week
+    }
+
+
 def seconds_since_midnight(time):
     """
     Calculates amount of seconds since midnight.
@@ -92,7 +108,7 @@ def seconds_since_midnight(time):
 
 def interval(start, end):
     """
-    Calculates inverval in seconds between two datetime.time objects.
+    Calculates interval in seconds between two datetime.time objects.
     """
     return seconds_since_midnight(end) - seconds_since_midnight(start)
 
