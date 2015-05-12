@@ -4,3 +4,4 @@ Presence analyzer.
 """
 from .main import app
 from . import views
+from presence_analyzer import urls
