@@ -4,8 +4,9 @@ Defines views.
 """
 
 import calendar
-from flask import redirect, abort, url_for, render_template, make_response
-from jinja2 import TemplateNotFound
+from flask import redirect, abort, url_for, make_response
+from flask.ext.mako import render_template
+from mako.exceptions import TopLevelLookupException
 
 from presence_analyzer.utils import (
     jsonify, get_data, mean, group_by_weekday, usual_presence_time
@@ -29,7 +30,7 @@ def render_page_user(template):
     template = ''.join([template, '.html'])
     try:
         return render_template(template)
-    except TemplateNotFound:
+    except TopLevelLookupException:
         return make_response("Requested template does not exist.", 404)
 
 
