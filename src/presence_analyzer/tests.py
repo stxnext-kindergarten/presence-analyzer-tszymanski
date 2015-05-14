@@ -45,7 +45,17 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         """
         resp = self.client.get('/')
         self.assertEqual(resp.status_code, 302)
-        assert resp.headers['Location'].endswith('/presence_weekday.html')
+        assert resp.headers['Location'].endswith('/presence_weekday')
+
+    def test_render_page_user(self):
+        """
+        Test rendering view.
+        """
+        resp = self.client.get('render/presence_weekday')
+        self.assertEqual(resp.status_code, 200)
+        resp = self.client.get('render/non_existing_template')
+        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(resp.data, 'Requested template does not exist.')
 
     def test_api_users(self):
         """

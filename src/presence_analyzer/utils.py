@@ -93,7 +93,9 @@ def usual_presence_time(items):
         user_week[dt.weekday()]['end'].append(items[dt]['end'])
     return {
         day: {
-            'start': mean(map(seconds_since_midnight, user_week[day]['start'])),
+            'start': mean(
+                map(seconds_since_midnight, user_week[day]['start'])
+            ),
             'end': mean(map(seconds_since_midnight, user_week[day]['end']))
         } for day in user_week
     }
