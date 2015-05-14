@@ -1,6 +1,6 @@
-{% extends "base.html" %}
+<%inherit file="base.html"/>
 
-{% block content %}
+<%block name="content">
     <h2>Presence start-end weekday</h2>
     <p>
         <select id="user_id" style="display: none">
@@ -9,12 +9,12 @@
         <div id="chart_div" style="display: none">
         </div>
         <div id="loading">
-            <img src="{{ url_for('static', filename='img/loading.gif') }}" />
+            <img src="${ url_for('static', filename='img/loading.gif') }" />
         </div>
     </p>
-{% endblock %}
+</%block>
 
-{% block js %}
+<%block name="js">
     <script type="text/javascript">
         google.load("visualization", "1", {packages:["corechart", "timeline"], 'language': 'pl'});
     </script>
@@ -28,7 +28,7 @@
         (function($) {
             $(document).ready(function(){
                 var loading = $('#loading');
-                $.getJSON("{{ url_for('users') }}", function(result) {
+                $.getJSON("${ url_for('users') }", function(result) {
                     var dropdown = $("#user_id");
                     $.each(result, function(item) {
                         dropdown.append($("<option />").val(this.user_id).text(this.name));
@@ -42,7 +42,7 @@
                     if (selected_user) {
                         loading.show();
                         chart_div.hide();
-                        $.getJSON("{{ url_for('presence_from_to', user_id=0) }}"+selected_user, function(result) {
+                        $.getJSON("${ url_for('presence_from_to', user_id=0) }"+selected_user, function(result) {
                             var newResult = [];
                             $.each(result, function(index, value) {
                                 if (value[1] != value[2])
@@ -75,4 +75,4 @@
             });
         })(jQuery);
     </script>
-{% endblock %}
+</%block>
