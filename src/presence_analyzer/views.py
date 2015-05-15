@@ -4,13 +4,15 @@ Defines views.
 """
 
 import calendar
-from flask import redirect, abort, url_for, make_response
+from flask import redirect, url_for, make_response
 from flask.ext.mako import render_template
 from mako.exceptions import TopLevelLookupException
+from lxml import etree
 
 from presence_analyzer.utils import (
     jsonify, get_data, mean, group_by_weekday, usual_presence_time
 )
+from presence_analyzer.main import app
 
 import logging
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -27,9 +29,16 @@ def render_page_user(template):
     """
     Renders template provided by user if it exists.
     """
+    tree = etree.parse(app.config['DATA_XML'])
+    xml_server = tree.getroot().find('server')
+    host = xml_server.find('host').text
+    port = xml_server.find('port').text
+    protocol = xml_server.find('protocol').text
     template = ''.join([template, '.html'])
     try:
-        return render_template(template)
+        return render_template(
+            template, avatar_host=''.join([protocol, '://', host, ':', port])
+        )
     except TopLevelLookupException:
         return make_response("Requested template does not exist.", 404)
 
@@ -39,11 +48,24 @@ def users_view():
     """
     Users listing for dropdown.
     """
-    data = get_data()
-    return [
-        {'user_id': i, 'name': 'User {0}'.format(str(i))}
-        for i in data.keys()
-    ]
+    try:
+        tree = etree.parse(app.config['DATA_XML'])
+        users_from_xml = tree.getroot().find('users')
+        xml_users = [
+            {
+                'user_id': int(user.get('id')),
+                'name': user.find('name').text,
+                'avatar': user.find('avatar').text
+            }
+            for user in users_from_xml
+        ]
+    except IOError:
+        log.error(
+            'No user data XML file found. '
+            'You can download it by running \"bin/update_xml\"'
+        )
+        xml_users = []
+    return xml_users
 
 
 @jsonify
@@ -54,7 +76,7 @@ def mean_time_weekday_view(user_id):
     data = get_data()
     if user_id not in data:
         log.debug('User %s not found!', user_id)
-        abort(404)
+        return 404
 
     weekdays = group_by_weekday(data[user_id])
     result = [
@@ -73,7 +95,7 @@ def presence_weekday_view(user_id):
     data = get_data()
     if user_id not in data:
         log.debug('User %s not found!', user_id)
-        abort(404)
+        return 404
 
     weekdays = group_by_weekday(data[user_id])
     result = [
@@ -92,7 +114,7 @@ def presence_from_to_view(user_id):
     data = get_data()
     if user_id not in data:
         log.debug('User %s not found!', user_id)
-        abort(404)
+        return 404
 
     weekdays = usual_presence_time(data[user_id])
     return [

@@ -37,8 +37,21 @@
         </ul>
     </div>
     <div id="content">
-        <%block name="content">
-        </%block>
+        <br>
+        <div id="avatar"></div>
+        <%block name="content"></%block>
+        <p>
+            <select id="user_id" style="display: none">
+                <option value="">--</option>
+            </select>
+            <div id="msg_div">
+            </div>
+            <div id="chart_div" style="display: none">
+            </div>
+            <div id="loading">
+                <img src="${ url_for('static', filename='img/loading.gif') }" />
+            </div>
+        </p>
     </div>
 </div>
 </body>

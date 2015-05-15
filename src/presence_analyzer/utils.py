@@ -6,9 +6,10 @@ Helper functions used in views.
 import csv
 from json import dumps
 from functools import wraps
-from datetime import datetime, time, date
+from datetime import datetime
 
 from flask import Response
+from lxml import etree
 
 from presence_analyzer.main import app
 
