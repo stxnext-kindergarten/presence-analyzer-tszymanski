@@ -4,17 +4,52 @@ Helper functions used in views.
 """
 
 import csv
+import logging
+import time
 from json import dumps
+from threading import Lock
 from functools import wraps
 from datetime import datetime
 
 from flask import Response
-from lxml import etree
 
 from presence_analyzer.main import app
 
-import logging
+
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
+cache = {}
+lck = Lock()
+
+
+def get_key(function, *args, **kw):
+    """
+    Utility for getting function name with called arguments.
+    """
+    key = '%s.%s:' % (function.__module__, function.__name__)
+    hash_args = [str(arg) for arg in args]
+    hash_kw = ['%s:%s' % (k, hash(v)) for k, v in kw.items()]
+    return '%s::%s::%s' % (key, hash_args, hash_kw)
+
+
+def memorize(age, storage=cache):
+    """
+    Memorizing decorator for caching purposes.
+    """
+    def _memorize(function):
+        def __memorize(*args, **kwargs):
+            key = get_key(function, *args, **kwargs)
+            try:
+                value_age, value = storage[key]
+                expired = (age != 0 and (value_age+age) < time.time())
+            except KeyError:
+                expired = True
+            if not expired:
+                with lck:
+                    return value
+            storage[key] = time.time(), function(*args, **kwargs)
+            return storage[key][1]
+        return __memorize
+    return _memorize
 
 
 def jsonify(function):
@@ -33,6 +68,7 @@ def jsonify(function):
     return inner
 
 
+@memorize(600)
 def get_data():
     """
     Extracts presence data from CSV file and groups it by user_id.

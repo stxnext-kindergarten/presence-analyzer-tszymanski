@@ -9,6 +9,8 @@ import json
 import datetime
 import unittest
 
+from mock import Mock
+
 from presence_analyzer import main, views, utils
 
 
@@ -239,6 +241,20 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
         self.assertDictEqual(
             utils.usual_presence_time(data[10]), desired_data
         )
+
+    def test_memorize_decorator(self):
+        """
+        Test memorize decorator.
+        """
+        storage = {}
+        function_mock = Mock(__name__='fake')
+        dec_func = utils.memorize(0, storage=storage)(function_mock)
+        dec_func()
+        self.assertTrue(function_mock.called)
+        function_mock.called = False
+        dec_func()
+        self.assertFalse(function_mock.called)
+        self.assertEqual(storage.keys()[0], 'mock.fake:::[]::[]')
 
 
 def suite():
