@@ -15,6 +15,9 @@ from presence_analyzer import main, views, utils
 TEST_DATA_CSV = os.path.join(
     os.path.dirname(__file__), '..', '..', 'runtime', 'data', 'test_data.csv'
 )
+TEST_DATA_XML = os.path.join(
+    os.path.dirname(__file__), '..', '..', 'runtime', 'data', 'test_users.xml'
+)
 
 
 # pylint: disable=maybe-no-member, too-many-public-methods
@@ -28,6 +31,7 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         Before each test, set up a environment.
         """
         main.app.config.update({'DATA_CSV': TEST_DATA_CSV})
+        main.app.config.update({'DATA_XML': TEST_DATA_XML})
         self.weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
         self.client = main.app.test_client()
         self.valid_user_id = '10'
@@ -65,8 +69,18 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.content_type, 'application/json')
         data = json.loads(resp.data)
-        self.assertEqual(len(data), 2)
-        self.assertDictEqual(data[0], {'user_id': 10, 'name': 'User 10'})
+        self.assertEqual(len(data), 10)
+        self.assertDictEqual(
+            data[0], {
+                'avatar': '/api/images/users/10',
+                'user_id': 10,
+                'name': 'Maciej Z.'
+            }
+        )
+
+        main.app.config.update({'DATA_XML': 'non_existing_file.xml'})
+        resp = self.client.get('/api/v1/users')
+        self.assertEqual(resp.data, '[]')
 
     def test_api_mean_time_weekday(self):
         """
@@ -81,7 +95,7 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         resp = self.client.get(
             '/api/v1/mean_time_weekday/' + self.invalid_user_id
         )
-        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(resp.data, '404')
 
         expected_data = [
             ['Mon', 0], ['Tue', 30047.0], ['Wed', 24465.0],
@@ -102,7 +116,7 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         resp = self.client.get(
             '/api/v1/presence_weekday/' + self.invalid_user_id
         )
-        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(resp.data, '404')
 
         expected_data = [
             ['Weekday', 'Presence (s)'], ['Mon', 0], ['Tue', 30047],
@@ -124,7 +138,7 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         resp = self.client.get(
             '/api/v1/presence_from_to/' + self.invalid_user_id
         )
-        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(resp.data, '404')
 
         expected_data = [
             ['Mon', 0, 0], ['Tue', 34745, 64792], ['Wed', 33592, 58057],
@@ -143,6 +157,7 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
         Before each test, set up a environment.
         """
         main.app.config.update({'DATA_CSV': TEST_DATA_CSV})
+        main.app.config.update({'DATA_XML': TEST_DATA_XML})
 
     def tearDown(self):
         """
@@ -221,7 +236,9 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
             5: {'start': 0, 'end': 0},
             6: {'start': 0, 'end': 0}
         }
-        self.assertDictEqual(utils.usual_presence_time(data[10]), desired_data)
+        self.assertDictEqual(
+            utils.usual_presence_time(data[10]), desired_data
+        )
 
 
 def suite():
