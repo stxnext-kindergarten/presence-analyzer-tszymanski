@@ -18,6 +18,10 @@ app.add_url_rule(
     view_func=views.presence_from_to_view
 )
 app.add_url_rule(
+    '/api/v1/monthly_hours/<int:user_id>', 'monthly_hours',
+    view_func=views.monthly_hours_view
+)
+app.add_url_rule(
     '/render/<template>', 'render',
     view_func=views.render_page_user
 )

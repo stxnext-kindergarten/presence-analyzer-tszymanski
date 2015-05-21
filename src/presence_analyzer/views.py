@@ -10,7 +10,8 @@ from mako.exceptions import TopLevelLookupException
 from lxml import etree
 
 from presence_analyzer.utils import (
-    jsonify, get_data, mean, group_by_weekday, usual_presence_time
+    jsonify, get_data, mean, group_by_weekday, usual_presence_time,
+    monthly_hours
 )
 from presence_analyzer.main import app
 
@@ -121,3 +122,13 @@ def presence_from_to_view(user_id):
         [calendar.day_abbr[day], int(value['start']), int(value['end'])]
         for day, value in weekdays.iteritems()
     ]
+
+
+@jsonify
+def monthly_hours_view(user_id):
+    data = get_data()
+    if user_id not in data:
+        log.debug('User %s not found!', user_id)
+        return 404
+
+    return monthly_hours(data[user_id])

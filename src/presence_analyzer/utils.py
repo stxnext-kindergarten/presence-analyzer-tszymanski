@@ -10,6 +10,7 @@ from json import dumps
 from threading import Lock
 from functools import wraps
 from datetime import datetime
+import calendar
 
 from flask import Response
 
@@ -157,3 +158,68 @@ def mean(items):
     Calculates arithmetic mean. Returns zero for empty lists.
     """
     return float(sum(items)) / len(items) if len(items) > 0 else 0
+
+
+def _get_years_and_months_total_hours(items):
+    """
+    Returns a dict with each year and corresponding month with
+    a list of worked hours per day.
+    """
+    years = {}
+    for date, times in items.iteritems():
+        years.setdefault(date.year, {})
+        years[date.year].setdefault(date.month, [])
+        years[date.year][date.month].append(
+            interval(times['start'], times['end'])
+        )
+
+    return years
+
+
+def _group_years_summary(years):
+    """
+    From given years dict, breaks each value list - seconds worked each day
+    into a list of months with worked hours.
+    """
+    result = {}
+    for month in range(1, 13):
+        for year, data in years.iteritems():
+            result.setdefault(year, [])
+            if data.get(month):
+                result[year].append(
+                    [
+                        calendar.month_abbr[month],
+                        sum(data.get(month)) / 60 ** 2
+                    ]
+                )
+            else:
+                result[year].append([calendar.month_abbr[month], 0])
+
+    return result
+
+
+def monthly_hours(items):
+    """
+    Returns average working hours for each month in year,
+    compatible with google charts api.
+
+    Structure sample:
+    [
+        ["Year", "2011", "2012", "2013"],
+        ["Jan", 0, 197, 139],
+        ["Feb", 0, 149, 167],
+        ...
+        ["Dec", 142, 149, 0]
+    ]
+    """
+    years = _get_years_and_months_total_hours(items)
+    result = _group_years_summary(years)
+    output = [['Year'] + map(str, years.iterkeys())]
+
+    for x in range(12):
+        item = [calendar.month_abbr[x+1]]
+        for lst in result.itervalues():
+            item.append(lst[x][1])
+        output.append(item)
+
+    return output

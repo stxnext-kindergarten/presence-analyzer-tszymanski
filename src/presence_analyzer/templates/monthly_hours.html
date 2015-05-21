@@ -1,18 +1,12 @@
 <%inherit file="base.html"/>
 
 <%block name="content">
-    <h2>Presence start-end weekday.</h2>
+    <h2>Hours worked by month in each year.</h2>
 </%block>
 
 <%block name="js">
     <script type="text/javascript">
         google.load("visualization", "1", {packages:["corechart", "timeline"], 'language': 'pl'});
-
-        function parseDate(value) {
-            var tm = new Date(1990, 1, 1);
-            tm.setSeconds(value);
-            return tm;
-        }
 
         (function($) {
             $(document).ready(function() {
@@ -41,33 +35,13 @@
                         }
                         loading.show();
                         chart_div.hide();
-                        $.getJSON("${ url_for('presence_from_to', user_id=0) }"+selected_user, function(result) {
-                            if (result !== 404) {
-                                var newResult = [];
-                                $.each(result, function (index, value) {
-                                    if (value[1] != value[2])
-                                        newResult.push(value)
-                                });
-                                result = newResult;
-                                $.each(result, function (index, value) {
-                                    value[1] = parseDate(value[1]);
-                                    value[2] = parseDate(value[2]);
-                                });
-                                var data = new google.visualization.DataTable();
-                                data.addColumn('string', 'Weekday');
-                                data.addColumn({type: 'datetime', id: 'Start'});
-                                data.addColumn({type: 'datetime', id: 'End'});
-                                data.addRows(result);
-                                var options = {
-                                    hAxis: {title: 'Weekday'}
-                                },
-                                formatter = new google.visualization.DateFormat({pattern: 'HH:mm:ss'});
-                                formatter.format(data, 1);
-                                formatter.format(data, 2);
-
+                        $.getJSON("${ url_for('monthly_hours', user_id=0) }"+selected_user, function(result) {
+                            if (result !== 404 && result.length > 2) {
+                                var data = new google.visualization.arrayToDataTable(result),
+                                    chart = new google.visualization.BarChart(chart_div[0]),
+                                    options ={ hAxis: {title: "Hours worked"} };
                                 chart_div.show();
                                 loading.hide();
-                                var chart = new google.visualization.Timeline(chart_div[0]);
                                 chart.draw(data, options);
                             } else {
                                 loading.hide();
