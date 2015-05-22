@@ -74,9 +74,9 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         self.assertEqual(len(data), 10)
         self.assertDictEqual(
             data[0], {
-                'avatar': '/api/images/users/10',
-                'user_id': 10,
-                'name': 'Maciej Z.'
+                'avatar': '/api/images/users/141',
+                'user_id': 141,
+                'name': 'Adam P.'
             }
         )
 
