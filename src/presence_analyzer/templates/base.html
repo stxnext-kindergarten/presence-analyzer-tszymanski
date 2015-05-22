@@ -25,7 +25,8 @@
             <% links = [
                 ('presence_weekday', 'Presence by weekday'),
                 ('mean_time_weekday', 'Presence mean time'),
-                ('presence_start_end', 'Presence start-end')
+                ('presence_start_end', 'Presence start-end'),
+                ('monthly_hours', 'Presence monthly')
             ] %>
             % for link, caption in links:
                 % if link in request.path:

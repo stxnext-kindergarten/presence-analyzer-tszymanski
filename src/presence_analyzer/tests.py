@@ -148,6 +148,28 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         ]
         self.assertEqual(data, expected_data)
 
+    def test_monthly_hours_api(self):
+        """
+        Test for monthly hours api.
+        """
+        resp = self.client.get(
+            '/api/v1/monthly_hours/' + self.valid_user_id
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.content_type, 'application/json')
+        data = json.loads(resp.data)
+        resp = self.client.get(
+            '/api/v1/monthly_hours/' + self.invalid_user_id
+        )
+        self.assertEqual(resp.data, '404')
+
+        expected_data = [
+            ["Year", "2013"], ["Jan", 0], ["Feb", 0], ["Mar", 0], ["Apr", 0],
+            ["May", 0], ["Jun", 0], ["Jul", 0], ["Aug", 0], ["Sep", 21],
+            ["Oct", 0], ["Nov", 0], ["Dec", 0]
+        ]
+        self.assertEqual(data, expected_data)
+
 
 class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
     """
@@ -255,6 +277,20 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
         dec_func()
         self.assertFalse(function_mock.called)
         self.assertEqual(storage.keys()[0], 'mock.fake:::[]::[]')
+
+    def test_monthly_hours(self):
+        """
+        Test monthly hours utility.
+        """
+        data = utils.get_data()
+        desired_data = [
+            ['Year', '2013'], ['Jan', 0], ['Feb', 0], ['Mar', 0], ['Apr', 0],
+            ['May', 0], ['Jun', 0], ['Jul', 0], ['Aug', 0], ['Sep', 21],
+            ['Oct', 0], ['Nov', 0], ['Dec', 0]
+        ]
+        self.assertEqual(
+            utils.monthly_hours(data[10]), desired_data
+        )
 
 
 def suite():
