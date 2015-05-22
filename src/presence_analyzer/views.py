@@ -2,21 +2,23 @@
 """
 Defines views.
 """
-
 import calendar
+import locale
+import logging
 from flask import redirect, url_for, make_response
 from flask.ext.mako import render_template
 from mako.exceptions import TopLevelLookupException
 from lxml import etree
 
+from presence_analyzer.main import app
 from presence_analyzer.utils import (
     jsonify, get_data, mean, group_by_weekday, usual_presence_time,
     monthly_hours
 )
-from presence_analyzer.main import app
 
-import logging
+
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
+locale.setlocale(locale.LC_COLLATE, 'pl_PL')
 
 
 def mainpage():
@@ -66,7 +68,7 @@ def users_view():
             'You can download it by running \"bin/update_xml\"'
         )
         xml_users = []
-    return xml_users
+    return sorted(xml_users, key=lambda k: k['name'], cmp=locale.strcoll)
 
 
 @jsonify
